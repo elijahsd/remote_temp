@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=Remote Temp
+Comment=Shows remote machines HDD temperature
+Type=Service
+ServiceTypes=Plasma/Applet
+
+X-KDE-Library=remote_temp
+X-KDE-PluginInfo-Name=remote_temp
+X-KDE-PluginInfo-Category=Examples
+X-KDE-PluginInfo-Author=Illia Ragozin
+X-KDE-PluginInfo-Email=illia.ragozin@grapecom.com
+X-KDE-PluginInfo-Version=0.1
+X-KDE-PluginInfo-Website=http://plasma.kde.org/
+X-KDE-PluginInfo-Depends=
+X-KDE-PluginInfo-License=GPL
+X-KDE-PluginInfo-EnabledByDefault=true
