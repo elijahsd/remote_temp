@@ -5,7 +5,9 @@
 
 #include <Plasma/Separator>
 
-#include <QFileInfo>
+#include <QNetworkAccessManager>
+#include <QUrl>
+#include <QNetworkRequest>
 
 #include <plasma/theme.h>
 
@@ -107,6 +109,71 @@ void RemoteTemp::sourceAdded(const QString &source)
 void RemoteTemp::dataUpdated(const QString &source, const Plasma::DataEngine::Data &data)
 {
     updateValues();
+}
+
+void RemoteTemp::paintInterface(QPainter *p,
+        const QStyleOptionGraphicsItem *option, const QRect &contentsRect)
+{
+
+}
+
+void RemoteTemp::invalidate()
+{
+    m_RawValues.clear();
+    for (int i = 0; i < RAW_VALUES_COUNT; i++) {
+        m_RawValues.append("error");
+    }
+}
+
+void RemoteTemp::updateValues()
+{
+    QNetworkAccessManager *nam = new QNetworkAccessManager(this);
+    QObject::connect(nam, SIGNAL(finished(QNetworkReply*)),
+            this, SLOT(finishedSlot(QNetworkReply*)));
+
+    QUrl url("http://home-nas/temp_status.txt");
+    QNetworkReply *reply = nam->get(QNetworkRequest(url));
+}
+
+void RemoteTemp::finishedSlot(QNetworkReply *reply)
+{
+    QVariant statusCodeV =
+            reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+    QVariant redirectionTargetUrl =
+            reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+
+    if (reply->error() == QNetworkReply::NoError)
+    {
+        QByteArray bytes = reply->readAll();
+        QString string = QString::fromUtf8(bytes);
+
+        QTextStream in(&string);
+
+        m_RawValues.clear();
+
+        while(!in.atEnd()) {
+            QString line = in.readLine();
+            if (line.isEmpty()) {
+                m_RawValues.append("undef");
+            } else {
+                m_RawValues.append(line);
+            }
+        }
+
+        if (m_RawValues.size() != RAW_VALUES_COUNT) {
+            invalidate();
+        }
+    } else {
+        return;
+    }
+
+    QDateTime dateTime = QDateTime::currentDateTime();
+    QString dateTimeString = dateTime.toString();
+    m_updateTitle->setText(QString("Last update: ").append(dateTimeString));
+
+    reply->deleteLater();
+
     for (int i = 0; i < TEMP_METERS_COUNT; i++) {
         int raw = m_RawValues.at(i).toInt();
         QColor color;
@@ -159,54 +226,6 @@ void RemoteTemp::dataUpdated(const QString &source, const Plasma::DataEngine::Da
             "b"
             )));
     }
-
-}
-
-void RemoteTemp::paintInterface(QPainter *p,
-        const QStyleOptionGraphicsItem *option, const QRect &contentsRect)
-{
-
-}
-
-void RemoteTemp::invalidate()
-{
-    m_RawValues.clear();
-    for (int i = 0; i < RAW_VALUES_COUNT; i++) {
-        m_RawValues.append("error");
-    }
-}
-
-void RemoteTemp::updateValues()
-{
-    QFile file("/tmp/temp_status");
-    if(!file.open(QIODevice::ReadOnly)) {
-        invalidate();
-        return;
-    }
-
-    QTextStream in(&file);
-
-    m_RawValues.clear();
-
-    while(!in.atEnd()) {
-        QString line = in.readLine();
-        if (line.isEmpty()) {
-            m_RawValues.append("undef");
-        } else {
-            m_RawValues.append(line);
-        }
-    }
-
-    if (m_RawValues.size() != RAW_VALUES_COUNT) {
-        invalidate();
-    }
-
-    file.close();
-
-    QFileInfo info("/tmp/temp_status");
-    QDateTime dateTime = info.lastModified();
-
-    m_updateTitle->setText(QString("Last update: ").append(dateTime.toString()));
 }
 
 K_EXPORT_PLASMA_APPLET(remote_temp, RemoteTemp)

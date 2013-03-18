@@ -9,6 +9,8 @@
 #include <Plasma/Meter>
 #include <QGraphicsLinearLayout>
 
+#include <QNetworkReply>
+
 #define RAW_VALUES_COUNT 9
 #define METERS_COUNT 7
 #define TEMP_METERS_COUNT 5
@@ -34,6 +36,7 @@ class RemoteTemp : public Plasma::Applet
     protected slots:
         void sourceAdded(const QString &source);
         void dataUpdated(const QString &source, const Plasma::DataEngine::Data &data);
+        void finishedSlot(QNetworkReply *reply);
 
     private:
 

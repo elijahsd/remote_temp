@@ -18,7 +18,7 @@ set(remote_temp_SRCS remote_temp.cpp)
 # Now make sure all files get to the right place
 kde4_add_plugin(remote_temp ${remote_temp_SRCS})
 target_link_libraries(remote_temp
-                      ${KDE4_PLASMA_LIBS} ${KDE4_KDEUI_LIBS})
+                      ${KDE4_PLASMA_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS})
 
 install(TARGETS remote_temp
         DESTINATION ${PLUGIN_INSTALL_DIR})
